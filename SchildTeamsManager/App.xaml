@@ -1,0 +1,22 @@
+﻿<Application x:Class="SchildTeamsManager.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.modernwpf.com/2019"
+             xmlns:vm="clr-namespace:SchildTeamsManager.ViewModel"
+             xmlns:converter="clr-namespace:SchildTeamsManager.Converter"
+             StartupUri="View/SplashScreen.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <vm:ViewModelLocator x:Key="ViewModelLocator" />
+
+            <converter:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <converter:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converter:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemeResources />
+                <ui:XamlControlsResources />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

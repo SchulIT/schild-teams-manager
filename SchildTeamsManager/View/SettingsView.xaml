@@ -1,0 +1,114 @@
+﻿<Window x:Class="SchildTeamsManager.View.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        ui:TitleBar.Style="{DynamicResource AppTitleBarStyle}"
+        ui:TitleBar.ButtonStyle="{DynamicResource AppTitleBarButtonStyle}"
+        ui:TitleBar.BackButtonStyle="{DynamicResource AppTitleBarBackButtonStyle}"
+        ui:TitleBar.ExtendViewIntoTitleBar="True"
+        mc:Ignorable="d"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=Settings}"
+        Title="Einstellungen" Height="450" Width="800">
+    
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Loaded">
+            <b:InvokeCommandAction Command="{Binding LoadSettingsCommand}"></b:InvokeCommandAction>
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+    
+    <DockPanel>
+
+        <ui:CommandBar DockPanel.Dock="Bottom">
+            <ui:AppBarElementContainer VerticalAlignment="Center" Margin="0,0,5,0">
+                <TextBlock Text="{Binding BusyText}" />
+            </ui:AppBarElementContainer>
+
+            <ui:AppBarButton Label="Verbindung testen" Icon="Remote" Command="{Binding TestConnectionCommand}" />
+            <ui:AppBarButton Label="Speichern" Icon="Save" Command="{Binding SaveCommand}" />
+        </ui:CommandBar>
+
+        <ui:ProgressBar DockPanel.Dock="Bottom" IsEnabled="{Binding IsBusy}" IsIndeterminate="True"
+                        Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+        <ScrollViewer Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <GroupBox Header="SchILD-Einstellungen">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox Text="{Binding Settings.ConnectionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ui:ControlHelper.Header="Verbinungszeichenkette zur MSSQL-Datenbank" />
+
+                        <CheckBox IsChecked="{Binding Settings.OnlyVisible}"
+                                  Grid.Row="1">Nur sichtbare Einträge anzeigen</CheckBox>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Teams-Einstellungen"
+                          Grid.Row="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox Text="{Binding Settings.TuitionTeamPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ui:ControlHelper.Header="Namensmuster für Unterrichts-Teams" />
+
+                        <TextBox Text="{Binding Settings.GradeTeamPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Grid.Row="1"
+                                 ui:ControlHelper.Header="Namensmuster für Klassen-Teams" />
+                        <TextBlock Grid.Row="2" TextWrapping="Wrap"
+                                   Style="{StaticResource BodyTextBlockStyle}">
+                            Es werden folgende Platzhalter unterstützt: %klassen% gibt alle Klassen in zusammengefasster Form (bspw. 5AB/6CD) an;
+
+                        </TextBlock>
+
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Microsoft Graph Einstellungen"
+                          Grid.Column="1" Grid.RowSpan="2"
+                          Margin="10,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox Text="{Binding Settings.TenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ui:ControlHelper.Header="Tenant ID" />
+
+                        <TextBox Text="{Binding Settings.ClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Grid.Row="1"
+                                 ui:ControlHelper.Header="Client ID" />
+
+                        <TextBox Text="{Binding Settings.ClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Grid.Row="2"
+                                 ui:ControlHelper.Header="Client Secret" />
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

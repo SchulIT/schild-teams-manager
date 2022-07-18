@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.4.0" />
+    <PackageReference Include="Microsoft.Graph" Version="4.34.0" />
+    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
+    <PackageReference Include="NaturalSort.Extension" Version="3.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="SchulIT.SchildExport" Version="1.2.0" />
+  </ItemGroup>
+
+<Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile">
+
+        <RemoveDuplicates Inputs="@(Analyzer)">
+            <Output TaskParameter="Filtered" ItemName="FilteredAnalyzer" />
+        </RemoveDuplicates>
+
+        <ItemGroup>
+            <Analyzer Remove="@(Analyzer)" />
+            <Analyzer Include="@(FilteredAnalyzer)" />
+        </ItemGroup>
+    </Target>
+</Project>
