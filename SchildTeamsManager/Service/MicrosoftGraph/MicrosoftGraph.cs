@@ -1,5 +1,7 @@
 ﻿using Microsoft.Graph;
 using Microsoft.Identity.Client;
+using Newtonsoft.Json;
+using SchildTeamsManager.UI.Dialog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,8 +32,14 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
 
         private IConfidentialClientApplication? app;
         private GraphServiceClient? graphClient;
+        private readonly IDialogHelper dialogHelper;
 
         #endregion
+
+        public MicrosoftGraph(IDialogHelper dialogHelper)
+        {
+            this.dialogHelper = dialogHelper;
+        }
 
         public async Task AuthenticateAsync(string tenantId, string clientId, string clientSecret)
         {
@@ -97,8 +105,6 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
 
             var group = groups.FirstOrDefault();
 
-            
-
             if (group == null)
             {
                 var educationClass = new EducationClass
@@ -118,36 +124,33 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                     .GetAsync();
             }
 
+            // Get existing users
+            var existingOwnerIds = await GetTeamOwnersAsync(group.Id);
+            var existingMemberIds = await GetTeamMembersAsync(group.Id);
+
             var ownersIds = await GetUserIds(owners);
             var membersIds = await GetUserIds(members);
 
-            if (ownersIds.Any()) {
+            if (ownersIds.Any())
+            {
+                var ownersToAdd = ComputeUsersToAdd(existingOwnerIds, ownersIds);
                 var tasks = new List<Task>();
-                foreach(var owner in ownersIds)
-                {
-                    var directoryObject = new DirectoryObject
-                    {
-                        Id = owner
-                    };
-                    tasks.Add(graphClient.Groups[group.Id].Owners.References.Request().AddAsync(directoryObject));
-                }
+                int batchSize = 20;
 
-                try
+                for(int batchId = 0; batchId < Math.Ceiling((double)ownersToAdd.Count() / batchSize); batchId++)
                 {
-                    await Task.WhenAll(tasks);
-                }
-                catch { }
-            }
+                    var offset = batchId * batchSize;
+                    var addJson = JsonConvert.SerializeObject(ownersToAdd.Skip(offset).Take(batchSize).Select(x => $"https://graph.microsoft.com/v1.0/directoryObjects/{x}"));
 
-            if (membersIds.Any()) {
-                var tasks = new List<Task>();
-                foreach (var member in membersIds)
-                {
-                    var directoryObject = new DirectoryObject
+                    var patchRequestData = new Group
                     {
-                        Id = member
+                        AdditionalData = new Dictionary<string, object>()
+                        {
+                            { "owners@odata.bind", addJson }
+                        }
                     };
-                    tasks.Add(graphClient.Groups[group.Id].Members.References.Request().AddAsync(directoryObject));
+
+                    tasks.Add(graphClient.Groups[group.Id].Request().UpdateAsync(patchRequestData));
                 }
 
                 try
@@ -156,7 +159,51 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.Write(ex.Message);
+                    dialogHelper.Show(new ErrorDialog
+                    {
+                        Title = "Fehler",
+                        Header = "Fehler bei Microsoft Graph",
+                        Content = "Beim Hinzufügen von Team-Besitzern ist ein Fehler aufgetreten.",
+                        Exception = ex
+                    });
+                }
+            }
+
+            if (membersIds.Any())
+            {
+                var membersToAdd = ComputeUsersToAdd(existingMemberIds, membersIds);
+                var tasks = new List<Task>();
+                int batchSize = 20;
+
+                for (int batchId = 0; batchId < Math.Ceiling((double)membersToAdd.Count() / batchSize); batchId++)
+                {
+                    var offset = batchId * batchSize;
+                    var addJson = JsonConvert.SerializeObject(membersToAdd.Skip(offset).Take(batchSize).Select(x => $"https://graph.microsoft.com/v1.0/directoryObjects/{x}"));
+
+                    var patchRequestData = new Group
+                    {
+                        AdditionalData = new Dictionary<string, object>()
+                        {
+                            { "members@odata.bind", addJson }
+                        }
+                    };
+
+                    tasks.Add(graphClient.Groups[group.Id].Request().UpdateAsync(patchRequestData));
+                }
+
+                try
+                {
+                    await Task.WhenAll(tasks);
+                }
+                catch (Exception ex)
+                {
+                    dialogHelper.Show(new ErrorDialog
+                    {
+                        Title = "Fehler",
+                        Header = "Fehler bei Microsoft Graph",
+                        Content = "Beim Hinzufügen von Team-Mitgliedern ist ein Fehler aufgetreten.",
+                        Exception = ex
+                    });
                 }
             }
 
@@ -169,12 +216,18 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
 
                 return ToTeam(group);
             }
-            catch
+            catch (Exception ex)
             {
+                dialogHelper.Show(new ErrorDialog
+                {
+                    Title = "Fehler",
+                    Header = "Fehler bei Microsoft Graph",
+                    Content = "Beim Abrufen des Teams bei Microsoft Graph ist ein Fehler auftreten.",
+                    Exception = ex
+                });
             }
 
             await Task.Delay(10 * 1000);
-
 
             // Create Team
             var team = new Team
@@ -186,58 +239,62 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                     }
             };
 
-            var result = await graphClient.Teams
-                .Request()
-                .AddAsync(team);
+            try
+            {
+                var result = await graphClient.Teams
+                    .Request()
+                    .AddAsync(team);
 
-            return ToTeam(group);
+                return ToTeam(group);
+            }
+            catch (Exception ex)
+            {
+                dialogHelper.Show(new ErrorDialog
+                {
+                    Title = "Fehler",
+                    Header = "Fehler bei Microsoft Graph",
+                    Content = "Beim erstellen des Teams ist ein Fehler aufgetreten.",
+                    Exception = ex
+                });
+            }
+
+            return null;
         }
 
-        public async Task<Model.Team> GetTeamMembersAsync(Model.Team team)
+        private IEnumerable<string> ComputeUsersToAdd(IEnumerable<string> existingUsers, IEnumerable<string> targetCollection)
+        {
+            var usersToAdd = new List<string>();
+
+            foreach(var userId in targetCollection)
+            {
+                if(!existingUsers.Contains(userId))
+                {
+                    usersToAdd.Add(userId);
+                }
+            }
+
+            return usersToAdd.ToArray();
+        }
+
+        private async Task<string[]> GetTeamMembersAsync(string groupId)
         {
             if (!IsAuthenticated || graphClient == null)
             {
                 throw new NotAuthenticatedException();
             }
 
-            // Query owners
-            var owners = await graphClient.Groups[team.GroupId]
-                .Owners
-                .Request()
-                .GetAsync();
+            var memberIds = new List<string>();
 
-            while (owners.Any())
-            {
-                foreach (var owner in owners)
-                {
-                    if (Users.ContainsKey(owner.Id))
-                    {
-                        team.Owners.Add(Users[owner.Id]);
-                    }
-                }
-
-                if (owners.NextPageRequest == null)
-                {
-                    break;
-                }
-
-                owners = await owners.NextPageRequest.GetAsync();
-            }
-
-            // Query members
-            var members = await graphClient.Groups[team.GroupId]
+            var members = await graphClient.Groups[groupId]
                 .Members
                 .Request()
                 .GetAsync();
 
             while (members.Any())
             {
-                foreach (var member in members)
+                foreach (var owner in members)
                 {
-                    if (Users.ContainsKey(member.Id))
-                    {
-                        team.Members.Add(Users[member.Id]);
-                    }
+                    memberIds.Add(owner.Id);
                 }
 
                 if (members.NextPageRequest == null)
@@ -248,7 +305,39 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                 members = await members.NextPageRequest.GetAsync();
             }
 
-            return team;
+            return memberIds.ToArray();
+        }
+
+        private async Task<string[]> GetTeamOwnersAsync(string groupId)
+        {
+            if (!IsAuthenticated || graphClient == null)
+            {
+                throw new NotAuthenticatedException();
+            }
+
+            var ownerIds = new List<string>();
+
+            var owners = await graphClient.Groups[groupId]
+                .Owners
+                .Request()
+                .GetAsync();
+
+            while (owners.Any())
+            {
+                foreach (var owner in owners)
+                {
+                    ownerIds.Add(owner.Id);
+                }
+
+                if (owners.NextPageRequest == null)
+                {
+                    break;
+                }
+
+                owners = await owners.NextPageRequest.GetAsync();
+            }
+
+            return ownerIds.ToArray();
         }
 
         public async Task<Model.Team?> GetTeamAsync(string alias)
@@ -267,9 +356,7 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                 return null;
             }
 
-            var team = ToTeam(result.First());
-
-            return await GetTeamMembersAsync(team);
+            return ToTeam(result.First());
         }
 
         public async Task<List<Model.Team>> GetGradeTeamsAsync(short year)

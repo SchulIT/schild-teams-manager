@@ -28,8 +28,6 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
 
         public Task<List<Team>> GetTeamsAsync(short year);
 
-        public Task<Team> GetTeamMembersAsync(Team team);
-
         public Task ArchiveTeam(Team team);
 
         public Task UnarchiveTeam(Team team);

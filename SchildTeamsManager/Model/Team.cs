@@ -1,5 +1,4 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
 
 namespace SchildTeamsManager.Model
 {
@@ -18,11 +17,5 @@ namespace SchildTeamsManager.Model
         public string DisplayName { get; set; } = string.Empty;
 
         public string EmailAddress { get; set; } = string.Empty;
-
-        public bool AreMembersFetched { get; set; } = false;
-
-        public ObservableCollection<User> Owners { get; set; } = new ObservableCollection<User>();
-
-        public ObservableCollection<User> Members { get; set; } = new ObservableCollection<User>();
     }
 }
