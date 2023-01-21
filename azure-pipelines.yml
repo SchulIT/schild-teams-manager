@@ -38,7 +38,7 @@ stages:
     - task: CmdLine@2
       displayName: 'dotnet publish'
       inputs:
-        script: dotnet publish $(solution) -c $(buildConfiguration) -a $(buildPlatform) -o publish
+        script: dotnet publish $(solution) -c $(buildConfiguration) -a $(buildPlatform) -o publish --sc
 
     - task: PublishPipelineArtifact@1
       displayName: Publish files to artifacts
@@ -71,5 +71,5 @@ stages:
         gitHubConnection: 'GitHub.com'
         repositoryName: schulit/schild-teams-manager
         assets: |
-          $(Agent.BuildDirectory)/output/schild-teams-manager.zip
+          $(Agent.BuildDirectory)/schild-teams-manager.zip
       
