@@ -41,9 +41,9 @@ stages:
         script: dotnet publish $(solution) -c $(buildConfiguration) -a $(buildPlatform) -o publish
 
     - task: PublishPipelineArtifact@1
-      displayName: Publish MSI to artifacts
+      displayName: Publish files to artifacts
       inputs:
-        targetPath: output
+        targetPath: publish
         artifactName: output
 
 - stage: publish
