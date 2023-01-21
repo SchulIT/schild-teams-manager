@@ -40,11 +40,19 @@ stages:
       inputs:
         script: dotnet publish $(solution) -c $(buildConfiguration) -a $(buildPlatform) -o publish --sc
 
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: publish
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: schild-teams-manager.zip
+        replaceExistingArchive: true
+
     - task: PublishPipelineArtifact@1
       displayName: Publish files to artifacts
       inputs:
-        targetPath: publish
-        artifactName: output
+        targetPath: schild-teams-manager.zip
+        artifactName: schild-teams-manager.zip
 
 - stage: publish
   displayName: Publish
@@ -57,19 +65,11 @@ stages:
     - task: DownloadPipelineArtifact@2
       displayName: Download artifacts
 
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: output
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/schild-teams-manager.zip'
-        replaceExistingArchive: true
-
     - task: GitHubRelease@0
       displayName: Release to GitHub
       inputs:
         gitHubConnection: 'GitHub.com'
         repositoryName: schulit/schild-teams-manager
         assets: |
-          $(Build.ArtifactStagingDirectory)/schild-teams-manager.zip
+          schild-teams-manager.zip
       
