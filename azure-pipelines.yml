@@ -4,11 +4,11 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- master
+- main
 - refs/tags/*
 
 pr:
-- master
+- main
 
 pool:
   vmImage: 'windows-latest'
