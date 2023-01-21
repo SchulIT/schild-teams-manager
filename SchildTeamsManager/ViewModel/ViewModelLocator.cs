@@ -33,6 +33,7 @@ namespace SchildTeamsManager.ViewModel
             builder.RegisterType<TuitionsViewModel>().AsSelf().SingleInstance();
             builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
             builder.RegisterType<GraphViewModel>().AsSelf().SingleInstance();
+            builder.RegisterType<AboutViewModel>().AsSelf().SingleInstance();
 
             container = builder.Build();
         }
@@ -52,5 +53,7 @@ namespace SchildTeamsManager.ViewModel
         public SettingsViewModel Settings { get { return container.Resolve<SettingsViewModel>(); } }
 
         public GraphViewModel Graph { get { return container.Resolve<GraphViewModel>(); } }
+
+        public AboutViewModel About { get { return container.Resolve<AboutViewModel>(); } }
     }
 }

@@ -9,6 +9,7 @@ using SchildTeamsManager.UI.Dialog;
 using SchulIT.SchildExport;
 using SchulIT.SchildExport.Linq;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -59,11 +60,15 @@ namespace SchildTeamsManager.ViewModel
 
         public ICollectionView GradesView { get; }
 
+        public ObservableCollection<Grade> SelectedGrades { get; } = new ObservableCollection<Grade>();
+
         #endregion
 
         #region Commands
 
         public AsyncRelayCommand LoadGradesCommand { get; }
+
+        public AsyncRelayCommand CreateTeamsCommand { get; private set; }
 
         #endregion
 
@@ -88,19 +93,63 @@ namespace SchildTeamsManager.ViewModel
             GradesView = CollectionViewSource.GetDefaultView(Grades);
 
             LoadGradesCommand = new AsyncRelayCommand(LoadGradesAsync, CanLoadGrades);
+            CreateTeamsCommand = new AsyncRelayCommand(CreateTeamsAsync, CanCreateTeams);
+
+            SelectedGrades.CollectionChanged += delegate
+            {
+                CreateTeamsCommand?.NotifyCanExecuteChanged();
+            };
         }
+
+        private async Task CreateTeamsAsync()
+        {
+            try
+            {
+                IsBusy = true;
+                var grades = SelectedGrades.ToList();
+                var tasks = new List<Task<Team>>();
+
+                foreach (var grade in grades)
+                {
+                    grade.IsBusy = true;
+                    var teachers = new List<Teacher> { grade.Teacher, grade.AdditionalTeacher }.Where(x => x != null);
+                    tasks.Add(graph.CreateTeamAsync(aliasResolver.ResolveDisplayName(grade, SchoolYear), aliasResolver.ResolveAlias(grade, SchoolYear), teachers.Select(x => x.EmailAddress).ToList(), grade.Students.Select(x => x.EmailAddress).ToList(), "eduClass"));
+                }
+
+                var teams = await Task.WhenAll(tasks);
+
+                foreach (var grade in grades)
+                {
+                    var alias = aliasResolver.ResolveAlias(grade, SchoolYear);
+                    var team = teams.FirstOrDefault(x => x.EmailAddress == alias);
+
+                    grade.AssociatedTeam = team;
+                    grade.IsBusy = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                dialogHelper.Show(new ErrorDialog { Title = "Fehler", Header = "Fehler beim Erstellen des Teams", Content = "Bitte die Details anschauen zwecks Fehlerursache.", Exception = ex });
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private bool CanCreateTeams() => SelectedGrades.Count > 0;
 
         private bool CanLoadGrades() => !IsBusy;
 
         private async Task LoadGradesAsync()
         {
-            if(settingsManager.Settings == null)
+            if (settingsManager.Settings == null)
             {
                 dialogHelper.Show(new Dialog { Title = "Fehler", Header = "Einstellungen nicht geladen", Content = "Die Anwendungseinstellungen wurden nicht ordnungsgemäß geladen. Bitte das Programm neu starten und erneut probieren." });
                 return;
             }
 
-            if(string.IsNullOrEmpty(settingsManager.Settings.SchILD.ConnectionString))
+            if (string.IsNullOrEmpty(settingsManager.Settings.SchILD.ConnectionString))
             {
                 dialogHelper.Show(new Dialog { Title = "Fehler", Header = "SchILD-Einstellungen unvollständig", Content = "Bitte die Verbindungszeichenfolge für SchILD in den Einstellungen konfigurieren." });
                 return;
@@ -108,7 +157,7 @@ namespace SchildTeamsManager.ViewModel
 
             schildExporter.Configure(settingsManager.Settings.SchILD.ConnectionString, false);
 
-            if(IsBusy)
+            if (IsBusy)
             {
                 return;
             }
@@ -142,7 +191,7 @@ namespace SchildTeamsManager.ViewModel
 
                 var teams = await graph.GetGradeTeamsAsync(SchoolYear);
 
-                foreach(var schildGrade in grades)
+                foreach (var schildGrade in grades)
                 {
                     var teacher = teachers.FirstOrDefault(x => schildGrade.Teacher != null && x.Acronym == schildGrade.Teacher.Acronym);
                     var additionalTeacher = teachers.FirstOrDefault(x => schildGrade.SubstituteTeacher != null && x.Acronym == schildGrade.SubstituteTeacher.Acronym);
@@ -151,7 +200,7 @@ namespace SchildTeamsManager.ViewModel
                     {
                         Name = schildGrade.Name,
                         Teacher = ConvertTeacher(teacher),
-                        AdditionalTeacher = ConvertTeacher(additionalTeacher),
+                        AdditionalTeacher = ConvertTeacher(additionalTeacher)
                     };
 
                     grade.AssociatedTeam = teams.FirstOrDefault(x => x.EmailAddress != null && x.EmailAddress.StartsWith(aliasResolver.ResolveAlias(grade, SchoolYear)));
@@ -171,7 +220,7 @@ namespace SchildTeamsManager.ViewModel
 
         private static Teacher ConvertTeacher(SchulIT.SchildExport.Models.Teacher teacher)
         {
-            if(teacher == null)
+            if (teacher == null)
             {
                 return null;
             }

@@ -28,7 +28,7 @@
             </ui:AppBarElementContainer>
 
             <ui:AppBarButton Label="Verbindung testen" Icon="Remote" Command="{Binding TestConnectionCommand}" />
-            <ui:AppBarButton Label="Speichern" Icon="Save" Command="{Binding SaveCommand}" />
+            <ui:AppBarButton Label="Speichern" Icon="Save" Command="{Binding SaveSettingsCommand}" />
         </ui:CommandBar>
 
         <ui:ProgressBar DockPanel.Dock="Bottom" IsEnabled="{Binding IsBusy}" IsIndeterminate="True"
@@ -59,30 +59,6 @@
 
                         <CheckBox IsChecked="{Binding Settings.OnlyVisible}"
                                   Grid.Row="1">Nur sichtbare Einträge anzeigen</CheckBox>
-                    </Grid>
-                </GroupBox>
-
-                <GroupBox Header="Teams-Einstellungen"
-                          Grid.Row="1">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBox Text="{Binding Settings.TuitionTeamPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 ui:ControlHelper.Header="Namensmuster für Unterrichts-Teams" />
-
-                        <TextBox Text="{Binding Settings.GradeTeamPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Grid.Row="1"
-                                 ui:ControlHelper.Header="Namensmuster für Klassen-Teams" />
-                        <TextBlock Grid.Row="2" TextWrapping="Wrap"
-                                   Style="{StaticResource BodyTextBlockStyle}">
-                            Es werden folgende Platzhalter unterstützt: %klassen% gibt alle Klassen in zusammengefasster Form (bspw. 5AB/6CD) an;
-
-                        </TextBlock>
-
                     </Grid>
                 </GroupBox>
 

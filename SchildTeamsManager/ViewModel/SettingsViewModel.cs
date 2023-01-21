@@ -36,7 +36,11 @@ namespace SchildTeamsManager.ViewModel
         public bool IsSuccessfulConfig
         {
             get { return isSuccessfulConfig; }
-            set { SetProperty(ref isSuccessfulConfig, value); }
+            set
+            {
+                SetProperty(ref isSuccessfulConfig, value);
+                SaveSettingsCommand?.NotifyCanExecuteChanged();
+            }
         }
 
         public SettingsForm Settings { get; } = new SettingsForm();
@@ -49,7 +53,7 @@ namespace SchildTeamsManager.ViewModel
 
         public AsyncRelayCommand TestConnectionCommand { get; private set; }
 
-        public AsyncRelayCommand SaveCommand { get; private set; }
+        public AsyncRelayCommand SaveSettingsCommand { get; private set; }
 
         #endregion
 
@@ -71,7 +75,7 @@ namespace SchildTeamsManager.ViewModel
 
             LoadSettingsCommand = new RelayCommand(LoadSettings);
             TestConnectionCommand = new AsyncRelayCommand(TestConnectionAsync, CanTest);
-            SaveCommand = new AsyncRelayCommand(SaveAsync, CanSave);
+            SaveSettingsCommand = new AsyncRelayCommand(SaveAsync, CanSave);
 
             Settings.ErrorsChanged += delegate
             {
@@ -83,8 +87,6 @@ namespace SchildTeamsManager.ViewModel
         {
             Settings.ConnectionString = settingsManager.Settings.SchILD.ConnectionString;
             Settings.OnlyVisible = settingsManager.Settings.SchILD.OnlyVisibleEntities;
-            Settings.TuitionTeamPattern = settingsManager.Settings.Teams.TuitionNamePattern;
-            Settings.GradeTeamPattern = settingsManager.Settings.Teams.GradeNamePattern;
 
             Settings.TenantId = settingsManager.Settings.Graph.TenantId;
             Settings.ClientId = settingsManager.Settings.Graph.ClientId;
@@ -135,8 +137,6 @@ namespace SchildTeamsManager.ViewModel
 
                 settingsManager.Settings.SchILD.ConnectionString = Settings.ConnectionString;
                 settingsManager.Settings.SchILD.OnlyVisibleEntities = Settings.OnlyVisible;
-                settingsManager.Settings.Teams.TuitionNamePattern = Settings.TuitionTeamPattern;
-                settingsManager.Settings.Teams.GradeNamePattern = Settings.GradeTeamPattern;
                 settingsManager.Settings.Graph.TenantId = Settings.TenantId;
                 settingsManager.Settings.Graph.ClientId = Settings.ClientId;
                 settingsManager.Settings.Graph.ClientSecret = Settings.ClientSecret;

@@ -1,0 +1,95 @@
+﻿<Page x:Class="SchildTeamsManager.View.AboutPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:SchildTeamsManager.View"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=About}"
+      Title="AboutPage">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="7">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Image Source="../icon.png" Width="96" Height="96" />
+
+                <Grid Grid.Column="1" Margin="10,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Style="{DynamicResource TitleTextBlockStyle}" Text="{Binding ApplicationName}" />
+                    <TextBlock Style="{DynamicResource SubtitleTextBlockStyle}" Grid.Row="1" Text="{Binding Version}"
+                               Foreground="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
+                    <TextBlock Grid.Row="2" Text="{Binding Copyright}" />
+                    <ui:HyperlinkButton NavigateUri="{Binding ProjectUrl}" Grid.Row="3" Cursor="Hand">
+                        <TextBlock Text="{Binding ProjectUrl}" VerticalAlignment="Top" Margin="0" />
+                    </ui:HyperlinkButton>
+                </Grid>
+            </Grid>
+
+            
+            
+            
+
+            <TextBlock Grid.Row="6" TextWrapping="Wrap" Margin="0,10,0,10">
+            Dieses Programm nutzt Bibliotheken von Drittanbietern. Diese sind im Folgenden aufgelistet. Besonderen Dank an die Entwickler dieser Bibliothken.
+            </TextBlock>
+        </Grid>
+
+
+
+        <ScrollViewer Grid.Row="10">
+            <ItemsControl ItemsSource="{Binding Libraries}" Margin="7">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <GroupBox DataContext="{Binding}" Margin="0,0,0,10">
+                            <GroupBox.Header>
+                                <ui:HyperlinkButton NavigateUri="{Binding PackageUrl}" FontSize="19">
+                                    <TextBlock Text="{Binding PackageName}" />
+                                </ui:HyperlinkButton>
+                            </GroupBox.Header>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="{Binding Description}" TextWrapping="Wrap" />
+                                <ui:HyperlinkButton NavigateUri="{Binding LicenseUrl}"
+                                                            Grid.Row="1">
+                                    <TextBlock Text="Lizenz anzeigen" />
+                                </ui:HyperlinkButton>
+                            </Grid>
+                        </GroupBox>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Page>

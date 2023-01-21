@@ -20,7 +20,7 @@
     <DockPanel>
         <ui:CommandBar DockPanel.Dock="Bottom">
 
-            <ui:AppBarButton Icon="Add" Label="Teams erstellen" ToolTip="Erstellt für die ausgewählten Unterrichte ein Team."
+            <ui:AppBarButton Icon="Add" Label="Teams erstellen/aktualisieren" ToolTip="Erstellt für die ausgewählten Unterrichte ein Team oder aktualisiert diese."
                              Command="{Binding CreateTeamsCommand}" />
             <ui:AppBarButton Icon="Sync" Label="Unterrichte erneut laden" ToolTip="Lädt die Unterrichte aus der SchILD-Datenbank."
                              Command="{Binding LoadTuitionsCommand}"/>

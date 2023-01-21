@@ -64,7 +64,7 @@ namespace SchildTeamsManager.Settings
         {
             using(var writer = new StreamWriter(SettingsJsonPath))
             {
-                var json = JsonConvert.SerializeObject(Settings);
+                var json = JsonConvert.SerializeObject(Settings, Formatting.Indented);
                 await writer.WriteAsync(json);
             }
         }

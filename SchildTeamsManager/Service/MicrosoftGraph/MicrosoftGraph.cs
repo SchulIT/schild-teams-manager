@@ -77,7 +77,7 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             {
                 var userIds = new List<string>();
 
-                foreach(var email in emailAddresses)
+                foreach(var email in emailAddresses.Distinct())
                 {
                     if(Users.ContainsKey(email))
                     {
@@ -129,7 +129,7 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             var existingMemberIds = await GetTeamMembersAsync(group.Id);
 
             var ownersIds = await GetUserIds(owners);
-            var membersIds = await GetUserIds(members);
+            var membersIds = await GetUserIds(members.Union(owners));
 
             if (ownersIds.Any())
             {
@@ -137,35 +137,14 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                 var tasks = new List<Task>();
                 int batchSize = 20;
 
-                for(int batchId = 0; batchId < Math.Ceiling((double)ownersToAdd.Count() / batchSize); batchId++)
+                foreach(var ownerToAdd in ownersToAdd)
                 {
-                    var offset = batchId * batchSize;
-                    var addJson = JsonConvert.SerializeObject(ownersToAdd.Skip(offset).Take(batchSize).Select(x => $"https://graph.microsoft.com/v1.0/directoryObjects/{x}"));
-
-                    var patchRequestData = new Group
+                    var directoryObject = new DirectoryObject
                     {
-                        AdditionalData = new Dictionary<string, object>()
-                        {
-                            { "owners@odata.bind", addJson }
-                        }
+                        Id = ownerToAdd
                     };
 
-                    tasks.Add(graphClient.Groups[group.Id].Request().UpdateAsync(patchRequestData));
-                }
-
-                try
-                {
-                    await Task.WhenAll(tasks);
-                }
-                catch (Exception ex)
-                {
-                    dialogHelper.Show(new ErrorDialog
-                    {
-                        Title = "Fehler",
-                        Header = "Fehler bei Microsoft Graph",
-                        Content = "Beim Hinzufügen von Team-Besitzern ist ein Fehler aufgetreten.",
-                        Exception = ex
-                    });
+                    await graphClient.Groups[group.Id].Owners.References.Request().AddAsync(directoryObject);
                 }
             }
 
@@ -178,33 +157,31 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
                 for (int batchId = 0; batchId < Math.Ceiling((double)membersToAdd.Count() / batchSize); batchId++)
                 {
                     var offset = batchId * batchSize;
-                    var addJson = JsonConvert.SerializeObject(membersToAdd.Skip(offset).Take(batchSize).Select(x => $"https://graph.microsoft.com/v1.0/directoryObjects/{x}"));
 
                     var patchRequestData = new Group
                     {
                         AdditionalData = new Dictionary<string, object>()
                         {
-                            { "members@odata.bind", addJson }
+                            { "members@odata.bind", membersToAdd.Skip(offset).Take(batchSize).Select(x => $"https://graph.microsoft.com/v1.0/directoryObjects/{x}").ToArray() }
                         }
                     };
 
-                    tasks.Add(graphClient.Groups[group.Id].Request().UpdateAsync(patchRequestData));
-                }
-
-                try
-                {
-                    await Task.WhenAll(tasks);
-                }
-                catch (Exception ex)
-                {
-                    dialogHelper.Show(new ErrorDialog
+                    try
                     {
-                        Title = "Fehler",
-                        Header = "Fehler bei Microsoft Graph",
-                        Content = "Beim Hinzufügen von Team-Mitgliedern ist ein Fehler aufgetreten.",
-                        Exception = ex
-                    });
+                        await graphClient.Groups[group.Id].Request().UpdateAsync(patchRequestData);
+                    }
+                    catch (Exception ex)
+                    {
+                        dialogHelper.Show(new ErrorDialog
+                        {
+                            Title = "Fehler",
+                            Header = "Fehler bei Microsoft Graph",
+                            Content = "Beim Hinzufügen von Team-Mitgliedern ist ein Fehler aufgetreten.",
+                            Exception = ex
+                        });
+                    }
                 }
+                
             }
 
             // Team anlegen, falls noch nicht vorhanden
@@ -218,16 +195,16 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             }
             catch (Exception ex)
             {
-                dialogHelper.Show(new ErrorDialog
+                /*dialogHelper.Show(new ErrorDialog
                 {
                     Title = "Fehler",
                     Header = "Fehler bei Microsoft Graph",
                     Content = "Beim Abrufen des Teams bei Microsoft Graph ist ein Fehler auftreten.",
                     Exception = ex
-                });
+                });*/
             }
 
-            await Task.Delay(10 * 1000);
+            await Task.Delay(30 * 1000);
 
             // Create Team
             var team = new Team

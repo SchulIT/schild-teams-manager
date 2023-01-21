@@ -19,15 +19,25 @@
     <DockPanel>
 
         <ui:CommandBar DockPanel.Dock="Bottom">
+            <ui:AppBarElementContainer VerticalAlignment="Center" Margin="0,0,5,0">
+                <TextBlock Text="{Binding BusyText}" />
+            </ui:AppBarElementContainer>
+
+            <ui:AppBarButton Label="Verbindung testen" Icon="Remote" Command="{Binding TestConnectionCommand}" />
             <ui:AppBarButton Label="Speichern" Icon="Save" Command="{Binding SaveSettingsCommand}" />
         </ui:CommandBar>
-        
+
         <ScrollViewer Padding="10">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
                 <GroupBox Header="SchILD-Einstellungen">
                     <Grid>
@@ -45,8 +55,9 @@
                     </Grid>
                 </GroupBox>
 
-                <GroupBox Header="Teams-Einstellungen"
-                          Grid.Row="1">
+                <GroupBox Header="Microsoft Graph Einstellungen"
+                          Grid.Column="1" Grid.RowSpan="2"
+                          Margin="10,0,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -54,18 +65,16 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBox Text="{Binding Settings.TuitionTeamPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 ui:ControlHelper.Header="Namensmuster für Unterrichts-Teams" />
+                        <TextBox Text="{Binding Settings.TenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ui:ControlHelper.Header="Tenant ID" />
 
-                        <TextBox Text="{Binding Settings.GradeTeamPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding Settings.ClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Grid.Row="1"
-                                 ui:ControlHelper.Header="Namensmuster für Klassen-Teams" />
-                        <TextBlock Grid.Row="2" TextWrapping="Wrap"
-                                   Style="{StaticResource BodyTextBlockStyle}">
-                            Es werden folgende Platzhalter unterstützt: %klassen% gibt alle Klassen in zusammengefasster Form (bspw. 5AB/6CD) an; 
-                            
-                        </TextBlock>
-                        
+                                 ui:ControlHelper.Header="Client ID" />
+
+                        <TextBox Text="{Binding Settings.ClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Grid.Row="2"
+                                 ui:ControlHelper.Header="Client Secret" />
                     </Grid>
                 </GroupBox>
             </Grid>

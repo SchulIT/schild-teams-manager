@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.modernwpf.com/2019"
       xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+      xmlns:behavior="clr-namespace:SchildTeamsManager.Behavior"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=Grades}"
@@ -19,6 +20,8 @@
     <DockPanel>
         <ui:CommandBar DockPanel.Dock="Bottom">
 
+            <ui:AppBarButton Icon="Add" Label="Teams erstellen/aktualisieren" ToolTip="Erstellt für die ausgewählten Unterrichte ein Team oder aktualisiert diese."
+                             Command="{Binding CreateTeamsCommand}" />
             <ui:AppBarButton Icon="Sync" Label="Klassen erneut laden" ToolTip="Lädt die Klassen aus der SchILD-Datenbank."
                              Command="{Binding LoadGradesCommand}"/>
             <ui:AppBarSeparator></ui:AppBarSeparator>
@@ -51,6 +54,11 @@
                   EnableRowVirtualization="True"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column">
+
+            <b:Interaction.Behaviors>
+                <behavior:SelectedItemsBehavior SelectedItems="{Binding SelectedGrades}" />
+            </b:Interaction.Behaviors>
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                 <DataGridTextColumn Header="Lehrkraft" Binding="{Binding Teacher}" />

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+using System;
 
 namespace SchildTeamsManager.Model
 {
@@ -10,12 +11,22 @@ namespace SchildTeamsManager.Model
 
         public Teacher AdditionalTeacher { get; set; }
 
-        private Team associatedTeam;
+        public Student[] Students { get; set; } = Array.Empty<Student>();
 
-        public Team AssociatedTeam
+        private Team? associatedTeam;
+
+        public Team? AssociatedTeam
         {
             get => associatedTeam;
             set => SetProperty(ref associatedTeam, value);
+        }
+
+        private bool isBusy;
+
+        public bool IsBusy
+        {
+            get { return isBusy; }
+            set { SetProperty(ref isBusy, value); }
         }
     }
 }

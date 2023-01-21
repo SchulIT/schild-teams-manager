@@ -24,14 +24,28 @@
             </Grid>
 
 
-            <Grid DockPanel.Dock="Top">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <Grid DockPanel.Dock="Top" VerticalAlignment="Top">
                 
-                <TextBlock FontSize="19">SchILD Teams-Manager</TextBlock>
-                <TextBlock Grid.Row="1">© SchulIT</TextBlock>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Image Source="../icon.png" Width="48" Height="48"
+                       RenderOptions.BitmapScalingMode="Fant" />
+
+                <Grid Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock FontSize="19">SchILD Teams-Manager</TextBlock>
+                    <TextBlock Grid.Row="1">© SchulIT</TextBlock>
+                </Grid>
+
+                
             </Grid>
         </DockPanel>
     </Border>

@@ -125,6 +125,14 @@ namespace SchildTeamsManager.ViewModel
 
                 var teams = await Task.WhenAll(tasks);
 
+                foreach(var tuition in tuitions)
+                {
+                    var alias = aliasResolver.ResolveAlias(tuition, SchoolYear);
+                    var team = teams.FirstOrDefault(x => x.EmailAddress == alias);
+
+                    tuition.AssociatedTeam = team;
+                    tuition.IsBusy = false;
+                }
             }
             catch (Exception ex)
             {
@@ -198,7 +206,7 @@ namespace SchildTeamsManager.ViewModel
                         continue;
                     }
 
-                    var grades = studyGroup.Grades.Select(x => new Grade { Name = x.Name }).ToArray();
+                    var grades = studyGroup.Grades.Where(x => x.IsVisible).Select(x => new Grade { Name = x.Name }).ToArray();
 
                     var tuitionTeachers = new List<Teacher>();
 

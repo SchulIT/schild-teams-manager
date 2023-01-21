@@ -5,19 +5,12 @@ namespace SchildTeamsManager.ViewModel.Form
 {
     public sealed partial class SettingsForm : ObservableValidator
     {
+        [Required]
         [ObservableProperty]
         private string connectionString;
 
         [ObservableProperty]
         private bool onlyVisible;
-
-        [Required]
-        [ObservableProperty]
-        private string tuitionTeamPattern = string.Empty;
-
-        [Required]
-        [ObservableProperty]
-        private string gradeTeamPattern = string.Empty;
 
         [Required]
         [ObservableProperty]

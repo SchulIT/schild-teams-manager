@@ -31,6 +31,7 @@ namespace SchildTeamsManager.View
                 "grades" => typeof(GradesPage),
                 "tuitions" => typeof(TuitionsPage),
                 "settings" => typeof(SettingsPage),
+                "about" => typeof(AboutPage),
                 _ => null,
             };
 

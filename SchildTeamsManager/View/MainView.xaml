@@ -36,7 +36,6 @@
         </Grid.RowDefinitions>
 
         <Grid x:Name="AppTitleBar"
-              Background="{DynamicResource SystemControlBackgroundAccentBrush}"
               Height="{Binding ElementName=Window, Path=(ui:TitleBar.Height)}">
             <Grid.Style>
                 <Style TargetType="Grid">
@@ -48,15 +47,20 @@
                     </Style.Triggers>
                 </Style>
             </Grid.Style>
+            
+            
 
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="32" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="{Binding ElementName=Window, Path=(ui:TitleBar.SystemOverlayRightInset), Converter={StaticResource PixelsToGridLength}}" />
             </Grid.ColumnDefinitions>
+
+            <Image Source="../icon.png" Width="20" Height="20"
+                   RenderOptions.BitmapScalingMode="Fant"/>
 
             <TextBlock
                 Grid.Column="1"
@@ -106,8 +110,9 @@
             </ui:NavigationView.MenuItems>
 
             <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="Über" Icon="ContactInfo" Tag="info"></ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="Einstellungen" Icon="Setting" Tag="settings"></ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="Über" Icon="ContactInfo" Tag="about"></ui:NavigationViewItem>
+                
             </ui:NavigationView.FooterMenuItems>
 
             <ui:Frame x:Name="frame"></ui:Frame>
