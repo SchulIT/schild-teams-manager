@@ -52,7 +52,7 @@ stages:
       displayName: Publish files to artifacts
       inputs:
         targetPath: schild-teams-manager.zip
-        artifactName: schild-teams-manager.zip
+        artifactName: output
 
 - stage: publish
   displayName: Publish
@@ -71,5 +71,5 @@ stages:
         gitHubConnection: 'GitHub.com'
         repositoryName: schulit/schild-teams-manager
         assets: |
-          schild-teams-manager.zip
+          $(Agent.BuildDirectory)/output/schild-teams-manager.zip
       
