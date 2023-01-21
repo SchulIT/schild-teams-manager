@@ -1,0 +1,75 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+trigger:
+- master
+- refs/tags/*
+
+pr:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: 'SchildTeamsManager.sln'
+  buildConfiguration: 'Release'
+  buildPlatform: 'x64'
+
+stages:
+- stage: build
+  displayName: Build
+  jobs:
+  - job: Build
+    steps:
+    - checkout: self
+      submodules: true
+
+    - task: CmdLine@2
+      displayName: Install gotnet-project-licenses
+      inputs:
+        script: dotnet tool install --global dotnet-project-licenses --version 2.0.0
+
+    - task: NuGetToolInstaller@1
+      displayName: Install nuget.exe
+
+    - task: CmdLine@2
+      displayName: 'dotnet publish'
+      inputs:
+        script: dotnet publish $(solution) -c $(buildConfiguration) -a $(buildPlatform) -o publish
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publish MSI to artifacts
+      inputs:
+        targetPath: output
+        artifactName: output
+
+- stage: publish
+  displayName: Publish
+  dependsOn:
+  - build
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  jobs:
+  - job: GitHub
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download artifacts
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: .
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: 'schild-teams-manager.zip'
+        replaceExistingArchive: true
+
+    - task: GitHubRelease@0
+      displayName: Release to GitHub
+      inputs:
+        gitHubConnection: 'GitHub.com'
+        repositoryName: schulit/schild-teams-manager
+        assets: |
+          $(Agent.BuildDirectory)/output/schild-teams-manager.zip
+      
