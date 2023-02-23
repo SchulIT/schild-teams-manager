@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using Microsoft.Toolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using SchildTeamsManager.Service.MicrosoftGraph;
 using SchildTeamsManager.Service.Schild;
 using SchildTeamsManager.Service.Teams;
@@ -37,8 +37,6 @@ namespace SchildTeamsManager.ViewModel
 
             container = builder.Build();
         }
-
-        public IMessenger Messenger { get { return container.Resolve<IMessenger>(); } }
 
         public IMicrosoftGraph MicrosoftGraph { get { return container.Resolve<IMicrosoftGraph>(); } }
 

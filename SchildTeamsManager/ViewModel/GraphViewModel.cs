@@ -1,4 +1,4 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SchildTeamsManager.Service.MicrosoftGraph;
 
 namespace SchildTeamsManager.ViewModel

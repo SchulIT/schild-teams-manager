@@ -1,6 +1,5 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using SchildTeamsManager.Extension;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using SchildTeamsManager.Model;
 using SchildTeamsManager.Service.MicrosoftGraph;
 using SchildTeamsManager.Service.Teams;

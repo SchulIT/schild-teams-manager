@@ -31,30 +31,29 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.5.0" />
-    <PackageReference Include="Microsoft.Graph" Version="4.51.0" />
-    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+    <PackageReference Include="Microsoft.Graph" Version="4.52.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="ModernWpfUI" Version="0.9.6" />
     <PackageReference Include="NaturalSort.Extension" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="SchulIT.SchildExport" Version="1.3.0" />
+    <PackageReference Include="SchulIT.SchildExport" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="icon.png" />
   </ItemGroup>
 
-<Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile">
+  <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile">
+    <RemoveDuplicates Inputs="@(Analyzer)">
+        <Output TaskParameter="Filtered" ItemName="FilteredAnalyzer" />
+    </RemoveDuplicates>
 
-        <RemoveDuplicates Inputs="@(Analyzer)">
-            <Output TaskParameter="Filtered" ItemName="FilteredAnalyzer" />
-        </RemoveDuplicates>
-
-        <ItemGroup>
-            <Analyzer Remove="@(Analyzer)" />
-            <Analyzer Include="@(FilteredAnalyzer)" />
-        </ItemGroup>
-    </Target>
+    <ItemGroup>
+        <Analyzer Remove="@(Analyzer)" />
+        <Analyzer Include="@(FilteredAnalyzer)" />
+    </ItemGroup>
+  </Target>
 
 <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
   <Exec Command="dotnet-project-licenses -i . -u -o -j" />
