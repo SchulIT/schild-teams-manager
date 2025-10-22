@@ -27,7 +27,7 @@ namespace SchildTeamsManager.UI.Dialog
                 taskDialogPage.Icon = TaskDialogIcon.Error;
                 taskDialogPage.Expander = new TaskDialogExpander
                 {
-                    Text = errorDialog.Exception.Message,
+                    Text = errorDialog.Exception?.Message,
                     Expanded = true
                 };
             }
@@ -47,9 +47,12 @@ namespace SchildTeamsManager.UI.Dialog
                 {
                     confirmDialog.CancelAction?.Invoke();
                 };
+
+                taskDialogPage.Buttons.Add(buttonContinue);
+                taskDialogPage.Buttons.Add(buttonClose);
             }
 
-            TaskDialog.ShowDialog(new WindowInteropHelper(windowManager.GetActiveWindow()).Handle, taskDialogPage);
+            TaskDialog.ShowDialog(new WindowInteropHelper(windowManager.GetFirstOpenedWindow()).Handle, taskDialogPage);
         }
     }
 }

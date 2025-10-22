@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LinqToDB.Common;
 using NaturalSort.Extension;
 using SchildTeamsManager.Model;
 using SchildTeamsManager.Service.MicrosoftGraph;
@@ -119,8 +120,11 @@ namespace SchildTeamsManager.ViewModel
 
                 foreach (var tuition in tuitions)
                 {
-                    tuition.IsBusy = true;
-                    tasks.Add(graph.CreateTeamAsync(aliasResolver.ResolveDisplayName(tuition, SchoolYear), aliasResolver.ResolveAlias(tuition, SchoolYear), tuition.Teachers.Select(x => x.EmailAddress).ToList(), tuition.Students.Select(x => x.EmailAddress).ToList(), "eduClass"));
+                    if (tuition.Teachers.Select(x => x.EmailAddress).Where(x => !string.IsNullOrEmpty(x)).Any())
+                    {
+                        tuition.IsBusy = true;
+                        tasks.Add(graph.CreateTeamAsync(aliasResolver.ResolveDisplayName(tuition, SchoolYear), aliasResolver.ResolveAlias(tuition, SchoolYear), tuition.Teachers.Select(x => x.EmailAddress).ToList(), tuition.Students.Select(x => x.EmailAddress).ToList(), "eduClass"));
+                    }
                 }
 
                 var teams = await Task.WhenAll(tasks);
@@ -161,9 +165,11 @@ namespace SchildTeamsManager.ViewModel
             }
 
             schildExporter.Configure(settingsManager.Settings.SchILD.ConnectionString, false);
+            Configuration.Linq.GuardGrouping = false;
 
             if (IsBusy)
             {
+                dialogHelper.Show(new Dialog { Title = "Busy", Content = "Busy", Header = "Busy" });
                 return;
             }
 
@@ -197,6 +203,7 @@ namespace SchildTeamsManager.ViewModel
 
                 Tuitions.Clear();
 
+                
                 foreach(var tuition in tuitions)
                 {
                     var studyGroup = studyGroups.FirstOrDefault(x => x.Id == tuition.StudyGroupRef.Id && tuition.StudyGroupRef.Name == x.Name);

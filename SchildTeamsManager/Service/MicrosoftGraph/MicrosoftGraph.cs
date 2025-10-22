@@ -1,6 +1,5 @@
 ﻿using Microsoft.Graph;
 using Microsoft.Identity.Client;
-using Newtonsoft.Json;
 using SchildTeamsManager.UI.Dialog;
 using System;
 using System.Collections.Generic;
@@ -336,7 +335,7 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             return ToTeam(result.First());
         }
 
-        public async Task<List<Model.Team>> GetGradeTeamsAsync(short year)
+        public async Task<List<Model.Team>> GetGradeTeamsAsync(int year)
         {
             if(!IsAuthenticated || graphClient == null)
             {
@@ -364,7 +363,7 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             return teams.Where(x => x.EmailAddress.EndsWith(year + "" + (year % 100 + 1))).ToList();
         }
 
-        public async Task<List<Model.Team>> GetTeamsAsync()
+        public async Task<List<Model.Team>> GetTeamsAsync(int year)
         {
             if(!IsAuthenticated || graphClient == null)
             {
@@ -373,7 +372,7 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
 
             List<Model.Team> teams = new List<Model.Team>();
 
-            var result = await graphClient.Groups.Request().Filter("resourceProvisioningOptions/Any(x:x eq 'Team')").GetAsync();
+            var result = await graphClient.Groups.Request().Header("ConsistencyLevel", "eventual").Filter($"endsWith(mailNickname, '-{year + "" + (year % 100 + 1)}') and resourceProvisioningOptions/Any(x:x eq 'Team')").GetAsync();
             while(result.Any())
             {
                 teams.AddRange(result.Select(x => new Model.Team {
@@ -392,12 +391,6 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             }
 
             return teams;
-        }
-
-        public async Task<List<Model.Team>> GetTeamsAsync(short year)
-        {
-            var teams = await GetTeamsAsync();
-            return teams.Where(x => x.EmailAddress.EndsWith($"{year}{(year % 100) + 1}")).ToList();
         }
 
         public Task LogoutAsync()
@@ -511,6 +504,16 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
             }
 
             return graphClient.Teams[team.GroupId].Unarchive().Request().PostAsync();
+        }
+
+        public Task RemoveTeamAsync(Model.Team team)
+        {
+            if (!IsAuthenticated || graphClient == null)
+            {
+                throw new NotAuthenticatedException();
+            }
+
+            return graphClient.Groups[team.GroupId].Request().DeleteAsync();
         }
     }
 }

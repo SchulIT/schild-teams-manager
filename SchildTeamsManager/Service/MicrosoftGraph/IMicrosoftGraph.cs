@@ -22,15 +22,15 @@ namespace SchildTeamsManager.Service.MicrosoftGraph
 
         public Task<Team?> GetTeamAsync(string alias);
 
-        public Task<List<Team>> GetGradeTeamsAsync(short year);
+        public Task<List<Team>> GetGradeTeamsAsync(int year);
 
-        public Task<List<Team>> GetTeamsAsync();
-
-        public Task<List<Team>> GetTeamsAsync(short year);
+        public Task<List<Team>> GetTeamsAsync(int year);
 
         public Task ArchiveTeam(Team team);
 
         public Task UnarchiveTeam(Team team);
+
+        public Task RemoveTeamAsync(Team team);
 
         public Task<Dictionary<string, bool?>> GetTeamsArchiveStatus(IEnumerable<Team> teams);
 

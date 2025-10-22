@@ -6,10 +6,8 @@ namespace SchildTeamsManager.UI
     {
         public void OpenMainView();
 
-        public void OpenSettingsView(bool closeActiveWindow);
+        public void OpenSettingsView();
 
-        public void CloseActiveWindow();
-
-        public Window? GetActiveWindow();
+        public Window? GetFirstOpenedWindow();
     }
 }

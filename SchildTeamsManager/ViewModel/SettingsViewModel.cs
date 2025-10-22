@@ -6,7 +6,6 @@ using SchildTeamsManager.UI.Dialog;
 using SchildTeamsManager.ViewModel.Form;
 using SchulIT.SchildExport;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace SchildTeamsManager.ViewModel

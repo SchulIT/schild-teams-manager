@@ -44,7 +44,7 @@ namespace SchildTeamsManager.ViewModel
 
                 if(!IsSettingsValid())
                 {
-                    windowManager.OpenSettingsView(true);
+                    windowManager.OpenSettingsView();
                     return;
                 }
 
@@ -69,7 +69,7 @@ namespace SchildTeamsManager.ViewModel
                     Exception = e
                 });
 
-                windowManager.OpenSettingsView(true);
+                windowManager.OpenSettingsView();
             }
         }
 

@@ -2,8 +2,9 @@
 using CommunityToolkit.Mvvm.Input;
 using SchildTeamsManager.Model;
 using SchildTeamsManager.Service.MicrosoftGraph;
-using SchildTeamsManager.UI;
+using SchildTeamsManager.Settings;
 using SchildTeamsManager.UI.Dialog;
+using SchulIT.SchildExport;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,18 +33,6 @@ namespace SchildTeamsManager.ViewModel
             set
             {
                 SetProperty(ref isHideArchivedTeamsEnabled, value);
-                ApplyFilter();
-            }
-        }
-
-        private bool isOnlyShowSchoolYearEnabled;
-
-        public bool IsOnlyShowSchoolYearEnabled
-        {
-            get { return isOnlyShowSchoolYearEnabled; }
-            set
-            {
-                SetProperty(ref isOnlyShowSchoolYearEnabled, value);
                 ApplyFilter();
             }
         }
@@ -82,35 +71,69 @@ namespace SchildTeamsManager.ViewModel
 
         #region Command
 
+        public AsyncRelayCommand LoadCurrentSchoolYearCommand { get; private set; }
         public AsyncRelayCommand LoadTeamsCommand { get; private set; }
 
         public AsyncRelayCommand ArchiveTeamsCommand { get; private set; }
 
         public AsyncRelayCommand UnarchiveTeamsCommand { get; private set; }
 
+        public AsyncRelayCommand RemoveTeamsCommand { get; private set; }
+
         #endregion
 
         #region Services
 
         private readonly IMicrosoftGraph graph;
+        private readonly IExporter schildExporter;
+        private readonly ISettingsManager settingsManager;
         private readonly IDialogHelper dialogHelper;
 
         #endregion
 
-        public TeamsViewModel(IMicrosoftGraph graph, IDialogHelper dialogHelper)
+        public TeamsViewModel(IMicrosoftGraph graph, IExporter schildExporter, ISettingsManager settingsManager, IDialogHelper dialogHelper)
         {
             this.graph = graph;
+            this.schildExporter = schildExporter;
+            this.settingsManager = settingsManager;
             this.dialogHelper = dialogHelper;
+            LoadCurrentSchoolYearCommand = new AsyncRelayCommand(LoadCurrentSchoolYear);
             LoadTeamsCommand = new AsyncRelayCommand(LoadTeams);
             ArchiveTeamsCommand = new AsyncRelayCommand(ArchiveTeams, CanArchiveTeams);
             UnarchiveTeamsCommand = new AsyncRelayCommand(UnarchiveTeams, CanUnarchiveTeams);
+            RemoveTeamsCommand = new AsyncRelayCommand(RemoveTeams, CanRemoveTeams);
 
             TeamsView = CollectionViewSource.GetDefaultView(Teams);
             SelectedTeams.CollectionChanged += delegate
             {
                 ArchiveTeamsCommand?.NotifyCanExecuteChanged();
                 UnarchiveTeamsCommand?.NotifyCanExecuteChanged();
+                RemoveTeamsCommand?.NotifyCanExecuteChanged();
             };
+        }
+
+        private async Task LoadCurrentSchoolYear()
+        {
+            if (settingsManager.Settings == null)
+            {
+                dialogHelper.Show(new Dialog { Title = "Fehler", Header = "Einstellungen nicht geladen", Content = "Die Anwendungseinstellungen wurden nicht ordnungsgemäß geladen. Bitte das Programm neu starten und erneut probieren." });
+                return;
+            }
+
+            if (string.IsNullOrEmpty(settingsManager.Settings.SchILD.ConnectionString))
+            {
+                dialogHelper.Show(new Dialog { Title = "Fehler", Header = "SchILD-Einstellungen unvollständig", Content = "Bitte die Verbindungszeichenfolge für SchILD in den Einstellungen konfigurieren." });
+                return;
+            }
+
+            schildExporter.Configure(settingsManager.Settings.SchILD.ConnectionString, false);
+
+            var schoolInfo = await schildExporter.GetSchoolInfoAsync();
+
+            if (schoolInfo.CurrentYear != null)
+            {
+                SchoolYear = schoolInfo.CurrentYear.Value;
+            }
         }
 
         private async Task ArchiveTeams()
@@ -191,7 +214,7 @@ namespace SchildTeamsManager.ViewModel
             try
             {
                 IsLoading = true;
-                var teams = await graph.GetTeamsAsync();
+                var teams = await graph.GetTeamsAsync(SchoolYear);
 
                 Teams.Clear();
                 var teamsDictionary = new Dictionary<string, Team>();
@@ -204,7 +227,7 @@ namespace SchildTeamsManager.ViewModel
                 // Check IsArchived-Status
                 var tasks = new List<Task<Dictionary<string, bool?>>>();
                 var batchSize = 20;
-                for(int idx = 0; idx < teams.Count / 20; idx++)
+                for(int idx = 0; idx < Math.Ceiling((double)Teams.Count / batchSize); idx++)
                 {
                     var offset = idx * batchSize;
                     var teamsBatch = Teams.Skip(offset).Take(batchSize);
@@ -234,6 +257,60 @@ namespace SchildTeamsManager.ViewModel
             }
         }
 
+        private async Task RemoveTeams()
+        {
+            dialogHelper.Show(
+                new ConfirmDialog
+                {
+                    Title = "Löschen bestätigen",
+                    Header = "Löschen bestätigen",
+                    Content = $"Es wurden {SelectedTeams.Count} Team(s) zum Löschen ausgewählt. Sollen die Teams wirklich gelöscht werden?",
+                    ConfirmAction = async () =>
+                    {
+                        try
+                        {
+                            IsLoading = true;
+
+                            var selectedItems = SelectedTeams.ToArray();
+                            var batchSize = 50;
+                            var batches = Math.Ceiling((double)selectedItems.Length / batchSize);
+
+                            for (int idx = 0; idx < batches; idx++)
+                            {
+                                var offset = idx * batchSize;
+                                var tasks = new List<Task>();
+                                foreach (var team in selectedItems.Skip(offset).Take(batchSize))
+                                {
+                                    tasks.Add(graph.RemoveTeamAsync(team));
+                                }
+
+                                await Task.WhenAll(tasks);
+
+                                foreach (var team in selectedItems.Skip(offset).Take(batchSize))
+                                {
+                                    Teams.Remove(team);
+                                }
+                            }
+
+                            TeamsView.Refresh();
+                            SelectedTeams.Clear();
+                        }
+                        catch (Exception ex)
+                        {
+                            dialogHelper.Show(new ErrorDialog { Title = "Fehler", Header = "Fehler beim Löschen der Teams", Content = "Bitte die Details anschauen zwecks Fehlerursache.", Exception = ex });
+                        }
+                        finally
+                        {
+                            IsLoading = false;
+                        }
+                    },
+                    CancelAction = () => { }
+                }
+            );
+        }   
+
+        private bool CanRemoveTeams() => SelectedTeams.Count > 0;
+
         private void ApplyFilter()
         {
             TeamsView.Filter = o =>
@@ -244,11 +321,6 @@ namespace SchildTeamsManager.ViewModel
                 }
 
                 if (IsHideArchivedTeamsEnabled && team.IsArchived.HasValue && team.IsArchived.Value)
-                {
-                    return false;
-                }
-
-                if(IsOnlyShowSchoolYearEnabled&& SchoolYear > 0 && !team.EmailAddress.EndsWith(SchoolYear + "" + (SchoolYear % 100 + 1)))
                 {
                     return false;
                 }

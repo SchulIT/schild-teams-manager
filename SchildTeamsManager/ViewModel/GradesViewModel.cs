@@ -178,7 +178,7 @@ namespace SchildTeamsManager.ViewModel
 
                 var grades = await schildExporter.GetGradesAsync(SchoolYear, Section);
                 var teachers = await schildExporter.GetTeachersAsync();
-
+                var students = await schildExporter.GetStudentsAsync(SchoolYear, Section);
 
                 if (settingsManager.Settings.SchILD.OnlyVisibleEntities)
                 {
@@ -195,6 +195,7 @@ namespace SchildTeamsManager.ViewModel
                     var teacher = teachers.FirstOrDefault(x => schildGrade.Teacher != null && x.Acronym == schildGrade.Teacher.Acronym);
                     var additionalTeacher = teachers.FirstOrDefault(x => schildGrade.SubstituteTeacher != null && x.Acronym == schildGrade.SubstituteTeacher.Acronym);
 
+
                     var grade = new Grade
                     {
                         Name = schildGrade.Name,
@@ -203,6 +204,7 @@ namespace SchildTeamsManager.ViewModel
                     };
 
                     grade.AssociatedTeam = teams.FirstOrDefault(x => x.EmailAddress != null && x.EmailAddress.StartsWith(aliasResolver.ResolveAlias(grade, SchoolYear)));
+                    grade.Students = students.Where(x => x.Grade.Name == grade.Name).Select(x => new Student { Firstname = x.Firstname, Lastname = x.Lastname, EmailAddress = x.Email, Grade = x.Grade.Name }).ToArray();
 
                     Grades.Add(grade);
                 }

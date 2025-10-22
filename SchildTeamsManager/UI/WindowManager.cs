@@ -6,42 +6,39 @@ namespace SchildTeamsManager.UI
 {
     public class WindowManager : IWindowManager
     {
-        public void CloseActiveWindow()
-        {
-            GetActiveWindow()?.Close();
-        }
-
         public void OpenMainView()
         {
-            var currentWindow = GetActiveWindow();
-
             var view = new MainView();
             view.Show();
-
-            currentWindow?.Close();
+            CloseAllOtherWindows(view);
         }
 
-        public void OpenSettingsView(bool closeActiveWindow)
+        public void OpenSettingsView()
         {
-            var currentWindow = GetActiveWindow();
-
             var view = new SettingsView();
+            view.Show();
+            CloseAllOtherWindows(view);
+        }
 
-            if (closeActiveWindow)
+        private static void CloseAllOtherWindows()
+        {
+            CloseAllOtherWindows(null);
+        }
+
+        private static void CloseAllOtherWindows(Window? windowToStayOpen)
+        {
+            foreach(var window in Application.Current.Windows.OfType<Window>())
             {
-                view.Show();
-                currentWindow?.Close();
-            }
-            else
-            {
-                view.Owner = currentWindow;
-                view.ShowDialog();
+                if(window != windowToStayOpen)
+                {
+                    window.Close();
+                }
             }
         }
 
-        public Window? GetActiveWindow()
+        public Window? GetFirstOpenedWindow()
         {
-            return Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+            return Application.Current.Windows.OfType<Window>().First();
         }
     }
 }

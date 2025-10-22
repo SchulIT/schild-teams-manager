@@ -10,18 +10,34 @@
       d:DesignHeight="450" d:DesignWidth="800"
       DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=Teams}"
       Title="Teams">
+
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
-            <b:InvokeCommandAction Command="{Binding LoadTeamsCommand}"></b:InvokeCommandAction>
+            <b:InvokeCommandAction Command="{Binding LoadCurrentSchoolYearCommand}"></b:InvokeCommandAction>
         </b:EventTrigger>
     </b:Interaction.Triggers>
-    
 
     <DockPanel>
         <ui:CommandBar DockPanel.Dock="Bottom">
+            <ui:AppBarButton Icon="Sync" Label="Teams laden" Command="{Binding LoadTeamsCommand}" />
+            <ui:AppBarSeparator></ui:AppBarSeparator>
             <ui:AppBarButton Icon="Library" Label="Archivieren" ToolTip="Archiviert die ausgewählten Teams." Command="{Binding ArchiveTeamsCommand}"></ui:AppBarButton>
             <ui:AppBarButton Icon="Library" Label="Archivierung aufheben" ToolTip="Hebt die Archivierung der ausgewählten Teams auf." Command="{Binding UnarchiveTeamsCommand}"></ui:AppBarButton>
             <ui:AppBarSeparator></ui:AppBarSeparator>
+            <ui:AppBarButton Icon="Delete" Label="Löschen" ToolTip="Löscht die ausgewählten Teams." Command="{Binding RemoveTeamsCommand}"></ui:AppBarButton>
+            <ui:AppBarSeparator></ui:AppBarSeparator>
+            <ui:AppBarElementContainer VerticalAlignment="Center"
+                           Margin="8,0">
+                <TextBlock>Schuljahr/Abschnitt:</TextBlock>
+            </ui:AppBarElementContainer>
+            <ui:AppBarElementContainer VerticalAlignment="Center"
+                           Margin="8,0">
+                <ui:NumberBox Minimum="2018" 
+                  Text="{Binding SchoolYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                  SpinButtonPlacementMode="Inline"
+                  ToolTip="Das aktuell ausgewählte Schuljahr."/>
+            </ui:AppBarElementContainer>
+
             <ui:AppBarButton Icon="Filter" Label="Filter">
                 <ui:FlyoutService.Flyout>
                     <ui:Flyout Placement="Top">
@@ -34,13 +50,6 @@
                             </Grid.RowDefinitions>
 
                             <CheckBox IsChecked="{Binding IsHideArchivedTeamsEnabled, Mode=TwoWay}">archivierte Teams ausblenden</CheckBox>
-                            <CheckBox IsChecked="{Binding IsOnlyShowSchoolYearEnabled, Mode=TwoWay}"
-                                      Grid.Row="1">nur Teams für ein Schuljahr anzeigen</CheckBox>
-
-                            <ComboBox ItemsSource="{Binding SchoolYears}"
-                                      IsEnabled="{Binding IsOnlyShowSchoolYearEnabled}"
-                                      SelectedItem="{Binding SchoolYear, Mode=TwoWay}"
-                                      Grid.Row="2"/>
                         </Grid>
                     </ui:Flyout>
                 </ui:FlyoutService.Flyout>
